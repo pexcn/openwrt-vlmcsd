@@ -41,7 +41,8 @@ endef
 TARGET_CFLAGS += -O3 \
 	-DFULL_INTERNAL_DATA
 
-MAKE_FLAGS += vlmcsd
+MAKE_FLAGS += vlmcsd \
+	VLMCSD_VERSION=$(PKG_VERSION)-$(PKG_RELEASE)
 
 define Package/vlmcsd/install
 	$(INSTALL_DIR) $(1)/usr/bin
