@@ -7,9 +7,36 @@
 #
 
 START=90
+STOP=10
 
 USE_PROCD=1
 #PROCD_DEBUG=1
+
+get_fqdn() {
+	local hostname=$(uci get system.@system[-1].hostname)
+	local domain=$(uci get dhcp.@dnsmasq[-1].domain)
+	echo "${hostname:-OpenWrt}.${domain:-lan}"
+}
+
+is_exists_srv_record() {
+	[ -f /etc/dnsmasq.d/vlmcs.conf ]
+}
+
+add_srv_record() {
+	if ! is_exists_srv_record; then
+		mkdir -p /etc/dnsmasq.d
+		echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > /etc/dnsmasq.d/vlmcs.conf
+		/etc/init.d/dnsmasq restart
+	fi
+}
+
+del_srv_record() {
+	if is_exists_srv_record; then
+		rm -f /etc/dnsmasq.d/vlmcs.conf
+		rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
+		/etc/init.d/dnsmasq restart
+	fi
+}
 
 start_vlmcsd() {
 	local enable
@@ -27,7 +54,22 @@ start_vlmcsd() {
 	procd_close_instance
 }
 
+setup_srv_record() {
+	local enable
+	config_get_bool enable $1 enable
+	[ "$enable" = 1 ] || return 0
+
+	local auto_activate
+	config_get_bool auto_activate $1 auto_activate
+	[ "$auto_activate" = 1 ] && add_srv_record || del_srv_record
+}
+
 start_service() {
 	config_load vlmcsd
 	config_foreach start_vlmcsd vlmcsd
+	config_foreach setup_srv_record vlmcsd
+}
+
+stop_service() {
+	del_srv_record
 }
