@@ -59,8 +59,6 @@ endef
 define Package/vlmcsd/postrm
 #!/bin/sh
 rmdir --ignore-fail-on-non-empty /etc/vlmcsd
-rm -f /etc/dnsmasq.d/vlmcs.conf
-rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
 exit 0
 endef
 
