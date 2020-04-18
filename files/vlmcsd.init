@@ -7,6 +7,7 @@
 #
 
 START=90
+STOP=10
 
 USE_PROCD=1
 #PROCD_DEBUG=1
@@ -21,16 +22,20 @@ is_exists_srv_record() {
 	[ -f /etc/dnsmasq.d/vlmcs.conf ]
 }
 
-create_srv_record() {
-	mkdir -p /etc/dnsmasq.d
-	echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > /etc/dnsmasq.d/vlmcs.conf
-	/etc/init.d/dnsmasq restart
+add_srv_record() {
+	if ! is_exists_srv_record; then
+		mkdir -p /etc/dnsmasq.d
+		echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > /etc/dnsmasq.d/vlmcs.conf
+		/etc/init.d/dnsmasq restart
+	fi
 }
 
-destroy_srv_record() {
-	rm -f /etc/dnsmasq.d/vlmcs.conf
-	rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
-	/etc/init.d/dnsmasq restart
+del_srv_record() {
+	if is_exists_srv_record; then
+		rm -f /etc/dnsmasq.d/vlmcs.conf
+		rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
+		/etc/init.d/dnsmasq restart
+	fi
 }
 
 start_vlmcsd() {
@@ -56,20 +61,15 @@ setup_srv_record() {
 
 	local auto_activate
 	config_get_bool auto_activate $1 auto_activate
-
-	if [ "$auto_activate" = 1 ]; then
-		if ! is_exists_srv_record; then
-			create_srv_record
-		fi
-	else
-		if is_exists_srv_record; then
-			destroy_srv_record
-		fi
-	fi
+	[ "$auto_activate" = 1 ] && add_srv_record || del_srv_record
 }
 
 start_service() {
 	config_load vlmcsd
 	config_foreach start_vlmcsd vlmcsd
 	config_foreach setup_srv_record vlmcsd
+}
+
+stop_service() {
+	del_srv_record
 }
