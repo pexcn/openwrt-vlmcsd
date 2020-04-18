@@ -13,27 +13,30 @@ USE_PROCD=1
 #PROCD_DEBUG=1
 
 get_fqdn() {
-	local hostname=$(uci get system.@system[-1].hostname)
-	local domain=$(uci get dhcp.@dnsmasq[-1].domain)
+	local hostname=$(uci get system.@system[-1].hostname 2>/dev/null)
+	local domain=$(uci get dhcp.@dnsmasq[-1].domain 2>/dev/null)
 	echo "${hostname:-OpenWrt}.${domain:-lan}"
 }
 
+get_srv_conf() {
+	local confdir=$(uci get dhcp.@dnsmasq[-1].confdir 2>/dev/null)
+	echo "${confdir:-/tmp/dnsmasq.d}/vlmcs.conf"
+}
+
 is_exists_srv_record() {
-	[ -f /etc/dnsmasq.d/vlmcs.conf ]
+	[ -f $(get_srv_conf) ]
 }
 
 add_srv_record() {
 	if ! is_exists_srv_record; then
-		mkdir -p /etc/dnsmasq.d
-		echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > /etc/dnsmasq.d/vlmcs.conf
+		echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > $(get_srv_conf)
 		/etc/init.d/dnsmasq restart
 	fi
 }
 
 del_srv_record() {
 	if is_exists_srv_record; then
-		rm -f /etc/dnsmasq.d/vlmcs.conf
-		rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
+		rm -f $(get_srv_conf)
 		/etc/init.d/dnsmasq restart
 	fi
 }
