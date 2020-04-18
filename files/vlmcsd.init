@@ -21,6 +21,18 @@ is_exists_srv_record() {
 	[ -f /etc/dnsmasq.d/vlmcs.conf ]
 }
 
+create_srv_record() {
+	mkdir -p /etc/dnsmasq.d
+	echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > /etc/dnsmasq.d/vlmcs.conf
+	/etc/init.d/dnsmasq restart
+}
+
+destroy_srv_record() {
+	rm -f /etc/dnsmasq.d/vlmcs.conf
+	rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
+	/etc/init.d/dnsmasq restart
+}
+
 start_vlmcsd() {
 	local enable
 	config_get_bool enable $1 enable
@@ -43,15 +55,11 @@ setup_srv_record() {
 
 	if [ "$auto_activate" = 1 ]; then
 		if ! is_exists_srv_record; then
-			mkdir -p /etc/dnsmasq.d
-			echo "srv-host=_vlmcs._tcp.lan,$(get_fqdn),1688,0,100" > /etc/dnsmasq.d/vlmcs.conf
-			/etc/init.d/dnsmasq restart
+			create_srv_record
 		fi
 	else
 		if is_exists_srv_record; then
-			rm -f /etc/dnsmasq.d/vlmcs.conf
-			rmdir --ignore-fail-on-non-empty /etc/dnsmasq.d
-			/etc/init.d/dnsmasq restart
+			destroy_srv_record
 		fi
 	fi
 }
