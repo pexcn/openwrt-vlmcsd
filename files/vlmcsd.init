@@ -7,19 +7,18 @@
 #
 
 START=90
-STOP=10
 
 USE_PROCD=1
 #PROCD_DEBUG=1
 
 get_fqdn() {
-	local hostname=$(uci get system.@system[-1].hostname 2>/dev/null)
-	local domain=$(uci get dhcp.@dnsmasq[-1].domain 2>/dev/null)
+	local hostname=$(uci -q get system.@system[-1].hostname)
+	local domain=$(uci -q get dhcp.@dnsmasq[-1].domain)
 	echo "${hostname:-OpenWrt}.${domain:-lan}"
 }
 
 get_srv_conf() {
-	local confdir=$(uci get dhcp.@dnsmasq[-1].confdir 2>/dev/null)
+	local confdir=$(uci -q get dhcp.@dnsmasq[-1].confdir)
 	echo "${confdir:-/tmp/dnsmasq.d}/vlmcs.conf"
 }
 
