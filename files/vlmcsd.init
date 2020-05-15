@@ -73,5 +73,6 @@ start_service() {
 }
 
 stop_service() {
+	# the config maybe changed before stopping, so make sure srv record are removed
 	del_srv_record
 }
