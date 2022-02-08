@@ -1,0 +1,26 @@
+From 6d551eebdc7a1b8d3cec78fae8d1c59e8bff4c4d Mon Sep 17 00:00:00 2001
+From: pexcn <i@pexcn.me>
+Date: Tue, 8 Feb 2022 10:25:53 +0800
+Subject: [PATCH] remove binary built time
+
+Signed-off-by: pexcn <i@pexcn.me>
+---
+ src/GNUmakefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/GNUmakefile b/src/GNUmakefile
+index faa6710..abb4919 100644
+--- a/src/GNUmakefile
++++ b/src/GNUmakefile
+@@ -368,7 +368,7 @@ libkms: $(REAL_DLL_NAME)
+ libkms-static: $(REAL_A_NAME)
+ 
+ ifneq ($(strip $(VLMCSD_VERSION)),)
+-  BASECFLAGS += -DVERSION=\"$(VLMCSD_VERSION),\ built\ $(shell date -u '+%Y-%m-%d %H:%M:%S' | sed -e 's/ /\\ /g')\ UTC\" 
++  BASECFLAGS += -DVERSION=\"$(VLMCSD_VERSION)\"
+ endif
+ 
+ ifdef CAT
+-- 
+2.33.1
+
